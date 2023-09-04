@@ -8,7 +8,12 @@ const server = http.createServer(app);
 const io = socketio(server);
 
 const formatMessage = require("./utils/messages");
-const { userJoin, getCurrentUser } = require("./utils/users");
+const {
+  userJoin,
+  getCurrentUser,
+  userLeaves,
+  getRoomUsers,
+} = require("./utils/users");
 
 const adminbot = "ChatVerse Bot";
 
@@ -20,6 +25,7 @@ io.on("connection", (socket) => {
     socket.join(user.room);
     // Welcome current user
     socket.emit("message", formatMessage(adminbot, "Welcome to ChatVerse"));
+    console.log(user);
 
     // Brodcast when a user connects to specific room
     socket.broadcast
@@ -28,6 +34,13 @@ io.on("connection", (socket) => {
         "message",
         formatMessage(adminbot, `${user.username} has joined the chat`)
       );
+
+    // Send room and users info
+    io.to(user.room).emit("roomUsers", {
+      room: user.room,
+      users: getRoomUsers(user.room),
+    });
+    console.log("getRoomusers", getRoomUsers(user.room));
   });
 
   // Listen for chat messgae
@@ -38,11 +51,27 @@ io.on("connection", (socket) => {
 
   // client disconnect
   socket.on("disconnect", () => {
-    io.emit("message", formatMessage(adminbot, `has left the chat`));
+    const user = userLeaves(socket.id);
+    if (user) {
+      io.to(user.room).emit(
+        "message",
+        formatMessage(adminbot, `${user.username} has left the chat`)
+      );
+
+      /**
+       * Send room and users info
+       * wasn't able to get the users for this connection
+       * because the while dispatching to the key name used was user but should have been users
+       */
+      io.to(user.room).emit("roomUsers", {
+        room: user.room,
+        users: getRoomUsers(user.room),
+      });
+    }
   });
 });
 
-const PORT = 3000 || process.env.PORT;
+const PORT = process.env.PORT || 3000;
 
 // Set static folder
 app.use(express.static(path.join(__dirname, "public")));
