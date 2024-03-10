@@ -1,5 +1,5 @@
 # CHATVERSE
-A Chatbot in Node.js, Vanilla JS, Socket.io.
+A Chatbot in Vanilla JS, Socket.io.
 
 ## Description
 A Real-time chat application in Node.js using Socket.io and Vanilla JS. It basically helps users within the same groups to communicate in realtime. Each user belongs to a particular room and can leave the room when needed, the users in the room are notified when a user joins or leaves the room.
